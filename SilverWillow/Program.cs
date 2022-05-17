@@ -25,11 +25,31 @@ List<string> commandList = new List<string>()
 Console.WriteLine();
 Console.Write($"Thanks, {userName}! Type HELP to see a list of commands anytime.");
 Console.WriteLine();
+int roomID = 1;
+string roomDescript = "You are in your bedroom. The WINDOW is open and a gentle breeze wafts through. Your BED is unmade. Atop your NIGHTSTAND is a sad-looking HOUSEPLANT.";
+List<string> roomObjects = new List<string>()
+    {
+    "WINDOW",
+    "BED",
+    "NIGHTSTAND",
+    "HOUSEPLANT",
+    "DOOR",
+    };
 while (gameOver == false)
 {
     Console.WriteLine();
     Console.Write("What should I do? ");
-    string command = Console.ReadLine().ToUpper();
+    string[]userInput = Console.ReadLine().ToUpper().Split(' ');
+    string command = userInput[0];
+    string argument = null;
+    if (userInput.Count() > 1)
+        {
+        argument = userInput[1];
+    }
+    else
+    {
+       argument = "null";
+    }
     Console.WriteLine();
     switch (command)
     {
@@ -40,7 +60,19 @@ while (gameOver == false)
             }
             break;
         case "LOOK":
-            break;
+            if (argument == "null")
+            {
+                Console.WriteLine(roomDescript);
+            }
+            else if (roomObjects.Contains(argument))
+            {
+                Console.WriteLine("When this works right, you'll see a description of the object you looked at here.");
+            }
+            else
+            {
+                Console.WriteLine("I don't see that here.");
+            }
+             break;
         case "ATTACK":
             break;
         case "TALK":
