@@ -20,11 +20,13 @@ string userName = Console.ReadLine().ToUpper();
 List<string> commandList = new List<string>()
 {
     "HELP",
+    "BAG",
     "LOOK",
     "ATTACK",
     "TALK",
     "TAKE",
-
+    "DROP",
+   
 };
 Console.WriteLine();
 Console.Write($"Thanks, {userName}! Type HELP to see a list of commands anytime.");
@@ -37,6 +39,12 @@ using (CsvReader csv = new CsvReader(reader, CultureInfo.InvariantCulture))
 {
     rooms = csv.GetRecords<Room>();
     roomDescript = rooms.ElementAt(RoomID - 1).Description;
+}
+List<Item> items;
+using (var reader = new StreamReader("Item.csv"))
+using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+{
+    items = csv.GetRecords<Item>().ToList();
 }
 Console.WriteLine(roomDescript);
 while (gameOver == false)
@@ -55,12 +63,7 @@ while (gameOver == false)
         argument = "null";
     }
     Console.WriteLine();
-    List<Item> items;
-    using (var reader = new StreamReader("Item.csv"))
-    using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
-    {
-        items = csv.GetRecords<Item>().ToList();
-    }
+   
     switch (command)
     {
         case "HELP":
@@ -81,7 +84,15 @@ while (gameOver == false)
                 switch (matchingItems.Count())
                 {
                     case 0:
-                        Console.WriteLine($"I don't see any {argument} here.");
+                        matchingItems = (items.Where(item => item.Name == argument && item.Room == 0 && item.Lookable == true));
+                        if (matchingItems.Count() > 0)
+                        {
+                            Console.WriteLine(matchingItems.First().Description);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"I don't see any {argument} here.");
+                        }
                         break;
                     case 1:
                         Console.WriteLine(matchingItems.First().Description);
@@ -143,7 +154,8 @@ while (gameOver == false)
                         }
                         else
                         {
-                            Console.WriteLine($"{argument} added to your inventory.");
+                            Console.WriteLine($"You put {argument} in your bag.");
+                            matchingItems.First().Room = 0;
                         }
                         break;
                 }
@@ -181,6 +193,40 @@ while (gameOver == false)
             break;
             break;
 
+        case "BAG":
+            var checkBag = (items.Where(item => item.Room == 0));
+            if (checkBag.Count() > 0)
+            {
+                foreach (var item in checkBag)
+                {
+                    Console.WriteLine(item.Name);
+                }
+            }
+            break;
+
+        case "DROP":
+            if (argument == "null")
+            {
+                Console.WriteLine("Drop what?");
+            }
+
+            else
+            {
+                var matchingItems = (items.Where(item => item.Name == argument && item.Room == 0 && item.Lookable == true));
+                switch (matchingItems.Count())
+                {
+                    case 0:
+                        Console.WriteLine($"You have no {argument} in your bag.");
+                        break;
+                    case 1:
+                       
+                            Console.WriteLine($"You take {argument} out of the bag and put it down.");
+                            matchingItems.First().Room = RoomID;
+                        
+                        break;
+                }
+            }
+            break;
 
         default:
             Console.WriteLine("I don't recognize that command.");
