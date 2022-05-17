@@ -74,8 +74,9 @@ while (gameOver == false)
             {
                 Console.WriteLine(roomDescript);
             }
-                        
-            else { 
+
+            else
+            {
                 var matchingItems = (items.Where(item => item.Name == argument && item.Room == RoomID && item.Lookable == true));
                 switch (matchingItems.Count())
                 {
@@ -89,9 +90,9 @@ while (gameOver == false)
 
             }
             break;
-    
+
         case "ATTACK":
-            
+
             if (argument == "null")
             {
                 Console.WriteLine("Attack what?");
@@ -99,14 +100,14 @@ while (gameOver == false)
 
             else
             {
-                var matchingItems = (items.Where(item => item.Name == argument && item.Room == RoomID && item.Lookable == true)) ;
+                var matchingItems = (items.Where(item => item.Name == argument && item.Room == RoomID && item.Lookable == true));
                 switch (matchingItems.Count())
                 {
                     case 0:
                         Console.WriteLine($"I don't see any {argument} here.");
                         break;
                     case 1:
-                        var checkAttackable = (items.Where(item => item.Attackable == true));
+                        var checkAttackable = (matchingItems.Where(item => item.Attackable == true));
                         if (checkAttackable.Count() == 0)
                         {
                             Console.WriteLine($"The {argument} is not your enemy!");
@@ -114,10 +115,38 @@ while (gameOver == false)
                         else
                         {
                             Console.WriteLine($"You attack the {argument}.");
-                        }    
+                        }
                         break;
                 }
 
+            }
+            break;
+        case "TAKE":
+            if (argument == "null")
+            {
+                Console.WriteLine("Take what?");
+            }
+
+            else
+            {
+                var matchingItems = (items.Where(item => item.Name == argument && item.Room == RoomID && item.Lookable == true));
+                switch (matchingItems.Count())
+                {
+                    case 0:
+                        Console.WriteLine($"I don't see any {argument} here.");
+                        break;
+                    case 1:
+                        var checkTakeable = (matchingItems.Where(item => item.Takeable == true));
+                        if (checkTakeable.Count() == 0)
+                        {
+                            Console.WriteLine($"You can't carry the {argument}.");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"{argument} added to your inventory.");
+                        }
+                        break;
+                }
             }
             break;
         case "TALK":
@@ -135,7 +164,7 @@ while (gameOver == false)
                         Console.WriteLine($"I don't see any {argument} here.");
                         break;
                     case 1:
-                        var checkTalk = (items.Where(item => item.Talkable == true)) ;
+                        var checkTalk = (items.Where(item => item.Talkable == true));
                         switch (checkTalk.Count())
                         {
                             case 0:
@@ -151,34 +180,7 @@ while (gameOver == false)
             }
             break;
             break;
-        case "TAKE":
-            if (argument == "null")
-            {
-                Console.WriteLine("Take what?");
-            }
-            else
-            {
-                var matchingItems = (items.Where(item => item.Name == argument && item.Room == RoomID && item.Lookable == true));
-                switch (matchingItems.Count())
-                {
-                    case 0:
-                        Console.WriteLine($"I don't see any {argument} here.");
-                        break;
-                    case 1:
-                        var checkTakeable = (items.Where(item => item.Takeable == true));
-                        if (checkTakeable.Count() == 0)
-                        {
-                            Console.WriteLine($"You can't carry the {argument}.");
-                        }
-                        else
-                        {
-                            Console.WriteLine($"You put the {argument} in your bag.");
-                        }
-                        break;
-                }
 
-            }
-            break;
 
         default:
             Console.WriteLine("I don't recognize that command.");
