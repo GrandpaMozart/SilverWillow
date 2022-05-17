@@ -90,7 +90,7 @@ while (gameOver == false)
             break;
     
         case "ATTACK":
-            using (var reader = new StreamReader("C:\\Users\\Joy\\Source\\Repos\\SilverWillow\\SilverWillow\\Item.csv"))
+            using (var reader = new StreamReader("Item.csv"))
             using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
             {
                 items = csv.GetRecords<Item>().ToList();
@@ -124,7 +124,7 @@ while (gameOver == false)
             }
             break;
         case "TALK":
-            using (var reader = new StreamReader("C:\\Users\\Joy\\Source\\Repos\\SilverWillow\\SilverWillow\\Item.csv"))
+            using (var reader = new StreamReader("Item.csv"))
             using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
             {
                 items = csv.GetRecords<Item>().ToList();
