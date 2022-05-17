@@ -1,10 +1,13 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿
+using CsvHelper;
+using System.Globalization;
+
 bool gameOver = false;
 Console.ForegroundColor = ConsoleColor.Magenta;
 Console.WriteLine(@" __                           
 (_ o|   _ ._ \    /o|| _      
 __)||\/(/_|   \/\/ |||(_)\/\/ ");
-Console.WriteLine("\n ~|~| A Magical Girl Story |~|~");
+Console.WriteLine("\n ~|~| A Magical Girl's Return |~|~");
 Console.ForegroundColor = ConsoleColor.White;
 Console.WriteLine();
 Console.WriteLine(@"Battling monsters with magical weapons... protecting the earth with the power of friendship...
@@ -25,30 +28,30 @@ List<string> commandList = new List<string>()
 Console.WriteLine();
 Console.Write($"Thanks, {userName}! Type HELP to see a list of commands anytime.");
 Console.WriteLine();
-int roomID = 1;
-string roomDescript = "You are in your bedroom. The WINDOW is open and a gentle breeze wafts through. Your BED is unmade. Atop your NIGHTSTAND is a sad-looking HOUSEPLANT.";
-List<string> roomObjects = new List<string>()
-    {
-    "WINDOW",
-    "BED",
-    "NIGHTSTAND",
-    "HOUSEPLANT",
-    "DOOR",
-    };
+int RoomID = 1;
+string roomDescript = "null";
+IEnumerable<Room> rooms;
+using (var reader = new StreamReader("Room.csv"))
+using (CsvReader csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+{
+    rooms = csv.GetRecords<Room>();
+    roomDescript = rooms.ElementAt(RoomID - 1).Description;
+}
+Console.WriteLine(roomDescript);
 while (gameOver == false)
 {
     Console.WriteLine();
     Console.Write("What should I do? ");
-    string[]userInput = Console.ReadLine().ToUpper().Split(' ');
+    string[] userInput = Console.ReadLine().ToUpper().Split(' ');
     string command = userInput[0];
     string argument = null;
     if (userInput.Count() > 1)
-        {
+    {
         argument = userInput[1];
     }
     else
     {
-       argument = "null";
+        argument = "null";
     }
     Console.WriteLine();
     switch (command)
@@ -60,22 +63,101 @@ while (gameOver == false)
             }
             break;
         case "LOOK":
+            List<Item> items;
+            using (var reader = new StreamReader("Item.csv"))
+            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+            {
+                items = csv.GetRecords<Item>().ToList();
+            }
             if (argument == "null")
             {
                 Console.WriteLine(roomDescript);
             }
-            else if (roomObjects.Contains(argument))
-            {
-                Console.WriteLine("When this works right, you'll see a description of the object you looked at here.");
+                        
+            else { 
+                var matchingItems = (items.Where(item => item.Name == argument && item.Room == RoomID && item.Lookable == true));
+                switch (matchingItems.Count())
+                {
+                    case 0:
+                        Console.WriteLine($"I don't see any {argument} here.");
+                        break;
+                    case 1:
+                        Console.WriteLine(matchingItems.First().Description);
+                        break;
+                }
+
             }
+            break;
+    
+        case "ATTACK":
+            using (var reader = new StreamReader("C:\\Users\\Joy\\Source\\Repos\\SilverWillow\\SilverWillow\\Item.csv"))
+            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+            {
+                items = csv.GetRecords<Item>().ToList();
+            }
+            if (argument == "null")
+            {
+                Console.WriteLine("Attack what?");
+            }
+
             else
             {
-                Console.WriteLine("I don't see that here.");
+                var matchingItems = (items.Where(item => item.Name == argument && item.Room == RoomID && item.Lookable == true)) ;
+                switch (matchingItems.Count())
+                {
+                    case 0:
+                        Console.WriteLine($"I don't see any {argument} here.");
+                        break;
+                    case 1:
+                        var checkAttackable = (items.Where(item => item.Attackable == true));
+                        if (checkAttackable.Count() == 0)
+                        {
+                            Console.WriteLine($"The {argument} is not your enemy!");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"You attack the {argument}.");
+                        }    
+                        break;
+                }
+
             }
-             break;
-        case "ATTACK":
             break;
         case "TALK":
+            using (var reader = new StreamReader("C:\\Users\\Joy\\Source\\Repos\\SilverWillow\\SilverWillow\\Item.csv"))
+            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+            {
+                items = csv.GetRecords<Item>().ToList();
+            }
+            if (argument == "null")
+            {
+                Console.WriteLine("You mutter to yourself, but it doesn't seem like anyone is listening.");
+            }
+
+            else
+            {
+                var matchingItems = (items.Where(item => item.Name == argument && item.Room == RoomID && item.Lookable == true));
+                switch (matchingItems.Count())
+                {
+                    case 0:
+                        Console.WriteLine($"I don't see any {argument} here.");
+                        break;
+                    case 1:
+                        var checkTalk = (items.Where(item => item.Talkable == true)) ;
+                        switch (checkTalk.Count())
+                        {
+                            case 0:
+                                Console.WriteLine($"You try talking to the {argument}, but it doesn't respond.");
+                                break;
+                            case 1:
+                                Console.WriteLine($"You talk to the {argument}.");
+                                break;
+                        }
+                        break;
+                }
+
+            }
+            break;
             break;
         default:
             Console.WriteLine("I don't recognize that command.");
