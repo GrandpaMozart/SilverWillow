@@ -10,7 +10,7 @@ __)||\/(/_|   \/\/ |||(_)\/\/ ");
 Console.WriteLine("\n ~|~| A Magical Girl's Return |~|~");
 Console.ForegroundColor = ConsoleColor.White;
 Console.WriteLine();
-Console.WriteLine(@"Battling monsters with magical weapons... protecting the earth with the power of friendship...
+Console.WriteLine(@"Protecting the world with glitter and friendship... fending off interstellar threats with love-enchanted weapons... 
 That was your life sixty years ago.
 After bringing relative peace to the world, you and your friends returned to the quiet of normal life.
 Now, a new danger threatens the world. 
@@ -23,6 +23,7 @@ List<string> commandList = new List<string>()
     "LOOK",
     "ATTACK",
     "TALK",
+    "TAKE",
 
 };
 Console.WriteLine();
@@ -54,6 +55,12 @@ while (gameOver == false)
         argument = "null";
     }
     Console.WriteLine();
+    List<Item> items;
+    using (var reader = new StreamReader("Item.csv"))
+    using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+    {
+        items = csv.GetRecords<Item>().ToList();
+    }
     switch (command)
     {
         case "HELP":
@@ -63,12 +70,6 @@ while (gameOver == false)
             }
             break;
         case "LOOK":
-            List<Item> items;
-            using (var reader = new StreamReader("Item.csv"))
-            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
-            {
-                items = csv.GetRecords<Item>().ToList();
-            }
             if (argument == "null")
             {
                 Console.WriteLine(roomDescript);
@@ -90,11 +91,7 @@ while (gameOver == false)
             break;
     
         case "ATTACK":
-            using (var reader = new StreamReader("Item.csv"))
-            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
-            {
-                items = csv.GetRecords<Item>().ToList();
-            }
+            
             if (argument == "null")
             {
                 Console.WriteLine("Attack what?");
@@ -124,11 +121,6 @@ while (gameOver == false)
             }
             break;
         case "TALK":
-            using (var reader = new StreamReader("Item.csv"))
-            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
-            {
-                items = csv.GetRecords<Item>().ToList();
-            }
             if (argument == "null")
             {
                 Console.WriteLine("You mutter to yourself, but it doesn't seem like anyone is listening.");
@@ -159,6 +151,35 @@ while (gameOver == false)
             }
             break;
             break;
+        case "TAKE":
+            if (argument == "null")
+            {
+                Console.WriteLine("Take what?");
+            }
+            else
+            {
+                var matchingItems = (items.Where(item => item.Name == argument && item.Room == RoomID && item.Lookable == true));
+                switch (matchingItems.Count())
+                {
+                    case 0:
+                        Console.WriteLine($"I don't see any {argument} here.");
+                        break;
+                    case 1:
+                        var checkTakeable = (items.Where(item => item.Takeable == true));
+                        if (checkTakeable.Count() == 0)
+                        {
+                            Console.WriteLine($"You can't carry the {argument}.");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"You put the {argument} in your bag.");
+                        }
+                        break;
+                }
+
+            }
+            break;
+
         default:
             Console.WriteLine("I don't recognize that command.");
             break;

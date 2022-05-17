@@ -9,6 +9,7 @@ public class Item
     public bool Lookable { get; set; }
     public bool Attackable { get; set; }
     public bool Talkable { get; set; }
+    public bool Takeable { get; set; }
 
     public Item()
     { }
