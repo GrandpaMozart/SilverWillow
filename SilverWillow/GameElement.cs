@@ -1,6 +1,6 @@
 ﻿using System;
 
-public class Item : IGameElement
+public interface IGameElement
 {
     public string Name { get; set; }
     public string Description { get; set; }
@@ -11,14 +11,6 @@ public class Item : IGameElement
     public bool Talkable { get; set; }
     public bool Takeable { get; set; }
     public bool IsCarried { get; set; }
-    public string Type { get; set; }
-    public bool IsEquipped { get; set; }
-    public int AttackBuff { get; set; }
-    public int DefenseBuff { get; set; }
-    public string BattleMessage { get; set; }
-    public int HPBuff { get; set; }
 
-    public Item()
-    { }
 
 }
