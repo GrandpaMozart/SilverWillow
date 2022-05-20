@@ -18,6 +18,7 @@ List<string> commandList = new List<string>()
     "HEALTH",
     "EQUIP",
     "USE",
+    "STATS",
 };
 
 // Pull the room data from the CSV file
@@ -34,6 +35,19 @@ using (var reader = new StreamReader("Item.csv"))
 using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
 {
     items = csv.GetRecords<Item>().ToList();
+}
+
+List<RoomDescription> roomDescriptions;
+using (var reader = new StreamReader("RoomDescription.csv"))
+using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+{
+    roomDescriptions = csv.GetRecords<RoomDescription>().ToList();
+}
+    List<Containment> containments;
+using (var reader = new StreamReader("Containment.csv"))
+using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+{
+    containments = csv.GetRecords<Containment>().ToList();
 }
 
 // Pull the NPC and player data from the CSV file
@@ -63,6 +77,7 @@ int playerAttack = checkPlayerPeep.First().Attack;
 int playerDefense = checkPlayerPeep.First().Defense;
 int playerWeaponID = checkPlayerPeep.First().WeaponEquipped;
 string playerDefaultAttack = checkPlayerPeep.First().DefaultAttack;
+int playerExp = 0;
 
 //ASCII art and introduction
 Console.ForegroundColor = ConsoleColor.Magenta;
@@ -78,15 +93,26 @@ After bringing relative peace to the world, you and your friends returned to the
 Now, a new danger threatens the world. 
 It's up to you to defend this planet once more.");
 Console.Write("\n Enter your name: ");
-string userName = Console.ReadLine();
+string userName = Console.ReadLine().ToUpper();
 Console.WriteLine();
 Console.Write($"Thanks, {userName}! Type HELP to see a list of commands anytime.");
 Console.WriteLine();
 
 //Establish the player in Room 1 and display its description for the first time
 int RoomID = 1;
+var playerRoom = peeps.Where(peep => peep.ID == 1);
 string roomDescript = rooms.ElementAt(RoomID - 1).Description;
-Console.WriteLine(roomDescript);
+Console.Write(roomDescript);
+var checkRoomItems = (roomDescriptions.Where(roomDescription => roomDescription.RoomID == RoomID));
+foreach (var checkRoomItem in checkRoomItems)
+{
+    var isItemHere = (items.Where(item => item.ID == checkRoomItem.ObjectID && item.Room == RoomID));
+    if (isItemHere.Count() > 0)
+        {
+        Console.Write($" {checkRoomItem.Description} ");
+    }
+}
+Console.WriteLine();
 Console.WriteLine();
 Console.WriteLine("Characters in room:");
 var peepsInRoom = (peeps.Where(peeps => peeps.Room == RoomID));
@@ -126,8 +152,20 @@ while (gameOver == false)
         case "LOOK":
             if (argument == "null")
             {
-                Console.WriteLine(roomDescript);
-                Console.WriteLine("Characters in room:");
+                Console.Write(roomDescript);
+                checkRoomItems = (roomDescriptions.Where(roomDescription => roomDescription.RoomID == RoomID));
+                foreach (var checkRoomItem in checkRoomItems)
+                {
+                    var isItemHere = (items.Where(item => item.ID == checkRoomItem.ObjectID && item.Room == RoomID));
+                    if (isItemHere.Count() > 0)
+                    {
+                        Console.Write($" {checkRoomItem.Description} ");
+                    }
+                }
+                Console.WriteLine();
+
+                Console.WriteLine();
+                Console.WriteLine("\n Characters in room:");
                 peepsInRoom = (peeps.Where(peeps => peeps.Room == RoomID));
                 foreach (var peep in peepsInRoom)
                 {
@@ -145,6 +183,7 @@ while (gameOver == false)
                         if (matchingElements.Count() > 0)
                         {
                             Console.WriteLine(matchingElements.First().Description);
+                           
                         }
                         else
                         {
@@ -152,7 +191,16 @@ while (gameOver == false)
                         }
                         break;
                     case 1:
-                        Console.WriteLine(matchingElements.First().Description);
+                        Console.Write(matchingElements.First().Description);
+                        var checkContained = (containments.Where(containment => containment.ContainerID == matchingElements.First().ID));
+                        if (checkContained.Count() > 0)
+                        {
+                            foreach (var containment in checkContained)
+                            {
+                                Console.Write($"{containment.Description} ");
+                            }
+                        }
+                        Console.WriteLine();
                         break;
                 }
 
@@ -262,6 +310,8 @@ while (gameOver == false)
                                         {
                                             enemy.First().Room = 0;
                                             Console.WriteLine($"You defeated {argument}!");
+                                            playerExp = playerExp + enemy.First().ExpOnDefeat;
+                                            Console.WriteLine($"You gained {enemy.First().ExpOnDefeat} EXP.");
                                             inBattle = false;
                                         }
 
@@ -321,6 +371,8 @@ while (gameOver == false)
                                                 {
                                                     enemy.First().Room = 0;
                                                     Console.WriteLine($"You defeated {argument}!");
+                                                    playerExp = playerExp + enemy.First().ExpOnDefeat;
+                                                    Console.WriteLine($"You gained {enemy.First().ExpOnDefeat} EXP.");
                                                     inBattle = false;
                                                 }
                                             }
@@ -405,6 +457,11 @@ while (gameOver == false)
                         {
                             Console.WriteLine($"You put {argument} in your bag.");
                             matchingItems.First().IsCarried = true;
+                            var checkContained = (containments.Where(containment => containment.ContainedID == checkTakeable.First().ID));
+                            if (checkContained.Count() > 0)
+                            {
+                                checkContained.First().ContainerID = 0;
+                            }
                             matchingItems.First().Room = 0;
                         }
                         break;
@@ -489,25 +546,53 @@ while (gameOver == false)
 
         case "NORTH":
             RoomID = matchingRooms.First().North;
+            playerRoom.First().Room = RoomID;
             roomDescript = rooms.ElementAt(RoomID - 1).Description;
             Console.WriteLine(roomDescript);
+            Console.WriteLine("\n Characters in room:");
+            peepsInRoom = (peeps.Where(peeps => peeps.Room == RoomID));
+            foreach (var peep in peepsInRoom)
+            {
+                Console.WriteLine(peep.Name);
+            }
             break;
 
         case "SOUTH":
             RoomID = matchingRooms.First().South;
+            playerRoom.First().Room = RoomID;
             roomDescript = rooms.ElementAt(RoomID - 1).Description;
             Console.WriteLine(roomDescript);
+            Console.WriteLine("\n Characters in room:");
+            peepsInRoom = (peeps.Where(peeps => peeps.Room == RoomID));
+            foreach (var peep in peepsInRoom)
+            {
+                Console.WriteLine(peep.Name);
+            }
             break;
 
         case "EAST":
             RoomID = matchingRooms.First().East;
+            playerRoom.First().Room = RoomID;
             roomDescript = rooms.ElementAt(RoomID - 1).Description;
             Console.WriteLine(roomDescript);
+            Console.WriteLine("\n Characters in room:");
+            peepsInRoom = (peeps.Where(peeps => peeps.Room == RoomID));
+            foreach (var peep in peepsInRoom)
+            {
+                Console.WriteLine(peep.Name);
+            }
             break;
         case "WEST":
             RoomID = matchingRooms.First().West;
+            playerRoom.First().Room = RoomID;
             roomDescript = rooms.ElementAt(RoomID - 1).Description;
             Console.WriteLine(roomDescript);
+            Console.WriteLine("\n Characters in room:");
+            peepsInRoom = (peeps.Where(peeps => peeps.Room == RoomID));
+            foreach (var peep in peepsInRoom)
+            {
+                Console.WriteLine(peep.Name);
+            }
             break;
         case "HEALTH":
             Console.WriteLine($"You have {playerHP} out of {playerMaxHP} health.");
@@ -540,8 +625,9 @@ while (gameOver == false)
                             }
                             else
                             {
-                                playerHP = playerHP + RestoredHP;
+                                playerHP = RestoredHP;
                                 Console.WriteLine($"You use the {argument} and recover {checkUse.First().HPBuff} health.");
+                                checkUse.First().IsCarried = false;
                             }
                             break;
                         default:
@@ -552,6 +638,14 @@ while (gameOver == false)
 
             }
             break;
+        case "STATS":
+            Console.WriteLine($"Attack: {playerAttack}");
+            Console.WriteLine($"Defense: {playerDefense}");
+            Console.WriteLine($"EXP: {playerExp}");
+            Console.WriteLine($"Health: {playerHP}/{playerMaxHP}");
+            break;
+
+
     }
 }
 
